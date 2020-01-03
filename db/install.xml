@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/fbwizard/db" VERSION="20150518" COMMENT="XMLDB file for Moodle local/fbwizard"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="fbwizard" COMMENT="fbwizard stores cache for deploy feedback">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="category"/>
+        <FIELD NAME="category" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" NEXT="cod_tpd_etb"/>
+        <FIELD NAME="cod_tpd_etb" TYPE="char" LENGTH="2" NOTNULL="true" DEFAULT="0"  SEQUENCE="false" NEXT="cod_etp"/>
+        <FIELD NAME="cod_etp" TYPE="char" LENGTH="6" NOTNULL="true"  DEFAULT="0"  SEQUENCE="false" NEXT="cod_vrs_vet"/>
+        <FIELD NAME="cod_vrs_vet" TYPE="char" LENGTH="3" NOTNULL="true" DEFAULT="0"  SEQUENCE="false" NEXT="lib_etp"/>
+        <FIELD NAME="lib_etp" TYPE="char" LENGTH="60" NOTNULL="true" DEFAULT="0"  SEQUENCE="false" NEXT="cohorte"/>
+        <FIELD NAME="cohorte" TYPE="char" LENGTH="250" NOTNULL="true" DEFAULT="0"  SEQUENCE="false" NEXT="model_courseid"/>
+        <FIELD NAME="model_courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" NEXT="deployed"/>
+        <FIELD NAME="deployed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" NEXT="timesync"/>
+        <FIELD NAME="timesync" TYPE="int" LENGTH="19" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="deployed"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
