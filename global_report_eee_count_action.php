@@ -93,7 +93,7 @@ if (is_siteadmin()) {
 					$counter[$idCourse][$thisDate]=1;
 
 			}
-		}
+		} 
 		asort($listDate);
 		$cptLine = 1;
 		$cptColumn = 1;

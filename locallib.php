@@ -641,7 +641,7 @@ function getCourseIdsForCategory($id_cat) {
 
 /*
 * get All the answer for a course
-*/
+*/ 
 function getNbReponseByCourse($id_course) {
         global $DB;
         $select = "select mdlfc.id, mdlfc.timemodified,fullname , cod_etp
