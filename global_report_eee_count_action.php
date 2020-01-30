@@ -55,10 +55,6 @@ require_once("../../mod/feedback/lib.php");
 require_once('apogee.class.php');
 require_once('locallib.php');
 require_login();
-//ini_set('memory_limit', '-1');
-
-//$url = new moodle_url('/local/fbwizard/global_report_eee_count_action.php');
-//$PAGE->set_url($url);
 
 /**
  * vérification que l'utilisateur est un administrateur
@@ -84,11 +80,13 @@ if (is_siteadmin()) {
 			{
 				$idCourse = $info->id;
 				$courseName = $info->shortname;
+				$codEtp = $info->cod_etp;
 				$thisDate = date("Ymd",$reponse->timemodified);
 				
 				if (empty($listDate[$thisDate]))
 					$listDate[$thisDate] = $thisDate;
-				$counter[$idCourse]["courseName"]= $courseName;
+				$counter[$idCourse]["courseInfo"]['courseName']= $courseName ;
+				$counter[$idCourse]["courseInfo"]["codEtp"]= $codEtp ;
 				if (!empty($counter[$idCourse][$thisDate])) 
 					$counter[$idCourse][$thisDate]+= 1;
 				else 
@@ -101,6 +99,8 @@ if (is_siteadmin()) {
 		$cptColumn = 1;
 		$array_csv[$cptLine][$cptColumn]='';
 		$cptColumn ++;	
+		$array_csv[$cptLine][$cptColumn]='Code Etape';
+		$cptColumn ++;	
 		foreach ($listDate as $key=>$answerDate){
 			$array_csv[$cptLine][$cptColumn]= date("d/m/Y",strtotime($answerDate));
 			$cptColumn ++;
@@ -110,22 +110,23 @@ if (is_siteadmin()) {
 		$cptLine++;
 		foreach ( $counter as $idCourse=>$answers){
 			$cptColumn=1;
- 			$array_csv[$cptLine][$cptColumn]=Nettoyer_chaine($answers["courseName"]);
+ 			$array_csv[$cptLine][$cptColumn]=Nettoyer_chaine($answers["courseInfo"]["courseName"]);
+ 			$cptColumn ++;
+ 			$array_csv[$cptLine][$cptColumn]=Nettoyer_chaine($answers["courseInfo"]["codEtp"]);
 			ksort($answers);
 			$cptTotal = 0;
 			$cptIndex =0;
 			foreach ($answers as $answerDate=>$nb){
 				$cptColumn=1;
 				$cptIndex++;
-				if ($answerDate != "courseName")
+				if ($answerDate != "courseInfo" )
 				{
 					while (date("d/m/Y",strtotime($answerDate)) != $array_csv[1][$cptColumn]){
 						if (empty($array_csv[$cptLine][$cptColumn]))
 					     		$array_csv[$cptLine][$cptColumn]=0;
 						$cptColumn++;
 					}
-					if (date("d/m/Y",strtotime($answerDate)) == $array_csv[1][$cptColumn])
-					{
+					if (date("d/m/Y",strtotime($answerDate)) == $array_csv[1][$cptColumn]){
 						$array_csv[$cptLine][$cptColumn]=$nb;
 						$cptColumn++;
 						$cptTotal+=$nb;
@@ -133,7 +134,7 @@ if (is_siteadmin()) {
 					
 					if ($cptIndex == sizeof($answers) )
 					{
-						while ($cptColumn <= sizeof($listDate)+1)
+						while ($cptColumn <= sizeof($listDate)+2)
 						{
 							if (empty($array_csv[$cptLine][$cptColumn]))
                         	                        {
@@ -145,8 +146,7 @@ if (is_siteadmin()) {
 				}		
 
 			}
-			 $array_csv[$cptLine][$cptColumn]=$cptTotal ;
-	
+			$array_csv[$cptLine][$cptColumn]=$cptTotal ;
 			$cptLine++;
 		}
 
@@ -155,26 +155,29 @@ if (is_siteadmin()) {
 		$result = getNbReponseByCourse($_GET['id']);
 		$cptTotal = 0;
 
-                foreach ($result as $id=>$reponse)
-           	{
+        foreach ($result as $id=>$reponse)
+       	{
 			$courseName = Nettoyer_chaine($reponse->fullname);
-                        $thisDate = date("Ymd",$reponse->timemodified);
+            $thisDate = date("Ymd",$reponse->timemodified);
+            $codEtp = $reponse->cod_etp;
+	        if (empty($listDate[$thisDate]))
+                $listDate[$thisDate] = $thisDate;
+            $counter["courseName"]= $courseName;
+            $counter["codEtp"]= $codEtp;
+            if (!empty($counter[$thisDate]))
+                $counter[$thisDate]+= 1;
+            else
+                $counter[$thisDate]=1;
 
-		        if (empty($listDate[$thisDate]))
-                        	$listDate[$thisDate] = $thisDate;
-                        $counter["courseName"]= $courseName;
-                        if (!empty($counter[$thisDate]))
-                                $counter[$thisDate]+= 1;
-                        else
-                       	        $counter[$thisDate]=1;
-
-                }
+        }
 		$array_csv[1][1]=" ";
 		$array_csv[2][1]=Nettoyer_chaine($counter["courseName"]);
-		$cptColumn=2;
+		$array_csv[1][2]="Code Etape";
+		$array_csv[2][2]= $counter["codEtp"];
+		$cptColumn=3;
 		foreach ( $counter as $dateAnswer=>$nbAnswer){
 			
-			if ($dateAnswer != "courseName"){
+			if ($dateAnswer != "courseName" && $dateAnswer != "codEtp"){
 				$array_csv[1][$cptColumn]=date("d/m/Y",strtotime($dateAnswer));
 				$array_csv[2][$cptColumn]=$nbAnswer;
 				$cptColumn++;
@@ -182,7 +185,7 @@ if (is_siteadmin()) {
 			}
 		}
 		$array_csv[1][$cptColumn]="Total";
-                $array_csv[2][$cptColumn]=$cptTotal;
+	    $array_csv[2][$cptColumn]=$cptTotal;
 	}
 download_send_headers("data_export_" . date("Y-m-d") . ".csv");
 echo array2csv($array_csv);

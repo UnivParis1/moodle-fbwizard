@@ -380,7 +380,8 @@ function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_e
         	'stepin' => 2,
         	'stepgo_3' =>  "Étape suivante"
         ),
-        'form_step3' => array(
+	'form_step3' => array(
+		    'shortname' => str_replace(' ','_',$lib_etp),
 		    'rattachements'=> array(),
 		    'up1niveauannee'=> array(),
 		    'up1semestre'=> array(),
@@ -488,7 +489,7 @@ function create_courses() {
 											$obj->cohorte,
 											$obj->cod_tpd_etb,
 											$model_courseid);
-	    $corewizard = new wizard_core($formdata, $USER);
+		$corewizard = new wizard_core($formdata, $USER);
 	    $errorMsg = $corewizard->create_course_to_validate();
 	    // récupère l'id du cours créé et mettre à jour fbwizard
 	    $SELECT = "SELECT MAX(id) as maxid from {course}";
@@ -629,7 +630,11 @@ function count_courses() {
 */
 function getCourseIdsForCategory($id_cat) {
 	global $DB;
-	$select = "select C.id,fullname,shortname from {course} C INNER JOIN {course_categories} CC on C.category = CC.id WHERE CC.path LIKE ? ";
+	$select = "select C.id,fullname,shortname, cod_etp
+	from {course} C 
+	INNER JOIN {course_categories} CC on C.category = CC.id
+	Inner JOIN {fbwizard} fb on C.id=fb.courseid
+	WHERE CC.path LIKE ? ";
 	$obj_courseids =  $DB->get_records_sql($select,array('/'.$id_cat.'%'));
 	return $obj_courseids ;
 }
@@ -639,7 +644,13 @@ function getCourseIdsForCategory($id_cat) {
 */
 function getNbReponseByCourse($id_course) {
         global $DB;
-        $select = "select mdlfc.id, mdlfc.timemodified,fullname from mdl_feedback_completed mdlfc inner join mdl_feedback mdlfbk on mdlfbk.id=mdlfc.feedback inner join mdl_course C on mdlfbk.course = C.id WHERE mdlfc.feedback=? order by mdlfc.timemodified";
+        $select = "select mdlfc.id, mdlfc.timemodified,fullname , cod_etp
+        from mdl_feedback_completed mdlfc 
+        inner join mdl_feedback mdlfbk on mdlfbk.id=mdlfc.feedback 
+        inner join mdl_course C on mdlfbk.course = C.id 
+        Inner JOIN {fbwizard} fb on C.id=fb.courseid
+        WHERE mdlfbk.course=? 
+        order by mdlfc.timemodified";
         $obj_courseById =  $DB->get_records_sql($select,array($id_course));
         return $obj_courseById ;
 }
