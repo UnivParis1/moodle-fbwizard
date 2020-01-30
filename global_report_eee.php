@@ -55,7 +55,7 @@ $form = <<< EOF
         <dt></dt>
         <dd><input type="submit" value="Valider"></dd>
         </dl>
-</form>
+</form> 
 EOF;
         echo $form; // insertion du formulaire dans la page
 
