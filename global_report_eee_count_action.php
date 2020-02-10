@@ -137,9 +137,9 @@ if (is_siteadmin()) {
 						while ($cptColumn <= sizeof($listDate)+2)
 						{
 							if (empty($array_csv[$cptLine][$cptColumn]))
-                        	                        {
+                        	{
 								$array_csv[$cptLine][$cptColumn]=0;
-                                       				$cptColumn++;
+                                $cptColumn++;
 							}
 						}
 					}

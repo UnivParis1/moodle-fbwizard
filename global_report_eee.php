@@ -57,10 +57,10 @@ $form = <<< EOF
         </dl>
 </form> 
 EOF;
-        echo $form; // insertion du formulaire dans la page
+    echo $form; // insertion du formulaire dans la page
 
-echo $OUTPUT->box_end();
-echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
+	echo $OUTPUT->box_end();
+	echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
 	echo '<h2>Rapport par formation</h2>';
         $category_model = get_config("local_fbwizard", "category_model");
         $select = "  select distinct category 
