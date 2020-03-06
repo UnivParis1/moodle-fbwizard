@@ -74,7 +74,7 @@ class apogee_connecteur{
 							INNER JOIN etape ETP on VDE.COD_ETP = ETP.COD_ETP
 							INNER JOIN diplome DIP on VDI.cod_dip = DIP.cod_dip
 							WHERE '$annee' BETWEEN VDE.daa_deb_rct_vet and VDE.daa_fin_val_vet
-							and DIP.COD_TPD_ETB IN ('20','DP','L1','L2','D2','L3','LI','D3','M1','M2')
+							and DIP.COD_TPD_ETB IN ('20','DP','L1','L2','D2','L3','LI','D3','M1','E1','M2','E2')
 							and VET.COD_CMP='$cmp'
 							ORDER BY ETP.lib_etp";
 		$cursor = OCIParse($conn, $SELECT_ETAPES);
