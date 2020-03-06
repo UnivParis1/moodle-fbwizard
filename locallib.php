@@ -195,8 +195,8 @@ function getIdModèleByCodTpdEtb($cod_etp, $cod_vrs_vet ,$cod_tpd_etb) {
 	 * L2-D2 : 231
 	 * L3-D3 : 232
 	 * LP-DP : 233
-	 * M1 : 645
-	 * M2 : 646
+	 * M1-E1: 645
+	 * M2-E2 : 646
 	 * 
 	 */
 	$niv=0;
@@ -213,9 +213,9 @@ function getIdModèleByCodTpdEtb($cod_etp, $cod_vrs_vet ,$cod_tpd_etb) {
     	return 232;	
     } elseif ($cod_tpd_etb == 'LP' || $cod_tpd_etb == 'DP') {
     	return 233;
-    } elseif ($cod_tpd_etb == 'M1' ) {
+    } elseif ($cod_tpd_etb == 'M1' || $cod_tpd_etb == 'E1') {
     	return 645;
-    } elseif ($cod_tpd_etb == 'M2' ) {
+    } elseif ($cod_tpd_etb == 'M2' || $cod_tpd_etb == 'E2') {
     	return 646;
     }
 
