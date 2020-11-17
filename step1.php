@@ -9,10 +9,13 @@ global $DB, $CFG, $PAGE, $OUTPUT, $SESSION, $USER;
 
 ini_set('max_execution_time', 600);
 ini_set('memory_limit', '2048M');
+
+echo html_writer::script("","https://code.jquery.com/jquery-1.11.0.min.js");
+echo html_writer::script("","js/ajax.js");
 $idcategorie=0;
 $url = new moodle_url('/local/fbwizard/step1.php');
 $PAGE->set_url($url);
-$context = context_system::instance();;
+$context = context_system::instance();
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('report');
 
@@ -52,9 +55,7 @@ if (is_siteadmin()) {
 		////////////////// TEST CREATION COURS ///////////////
 		create_coursee( $_POST['composante'],'Licence 3è année Géo & aménagt parc. Aménagement (Magistère)', 'L3H304','L3');
 		*/
-		
 		foreach ($liste_formations as $key=>$value) {
-			
 			$cohorte = $value['category'];
 			$cohorte = getCohorte($value['cod_etp']);
 			if (!empty($cohorte[0][0])) {
@@ -70,7 +71,9 @@ if (is_siteadmin()) {
 			}
 		}
 		$SESSION->fbwizard = $liste_formations;
+		echo ' <label for="search">Trier :</label> <input type="text" id="search" placeholder="Rechercher">';
 		$table2 = new html_table();
+		$table2->id = "mytable";
 		$table2->head = array('Category', 'COD_TPD_ETB','COD_ETP', 'COD_VRS_VET','LIB_ETP','COHORTE ASSOCIEE','&nbsp;');
 		$table2->data = $liste_formations;
 		echo html_writer::table($table2);	
@@ -80,3 +83,4 @@ if (is_siteadmin()) {
 }
 echo $OUTPUT->box_end();
 echo $OUTPUT->footer(); 
+ 

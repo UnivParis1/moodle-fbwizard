@@ -21,4 +21,19 @@
 	}
 
 
-}
+});
+$(document).ready(function() {
+  $("#search").keyup(function() {
+    _this = this;
+    $.each($('#mytable tbody tr'), function() {
+    	show = false;
+    	$(this).hide();
+    	 $.each($(this)[0]['children'], function(){
+    	 	if ($(this)[0]['textContent'].toLowerCase().indexOf($(_this).val().toLowerCase()) !== -1)
+                    show = true;
+    	 });
+      if (show)
+        $(this).show();        
+    });
+  });
+});
