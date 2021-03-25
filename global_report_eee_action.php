@@ -79,7 +79,7 @@ if (is_siteadmin()) {
 		$array_csv[$cpt][6]='Date';
 		$cpt_col_item = 6; 
 		for ($numero_item=1;$numero_item < 20; $numero_item++) {
-			$sql_item = "SELECT distinct label,  name  FROM mdl_feedback_item WHERE label LIKE 'com$numero_item' order by id desc";
+			$sql_item = "SELECT distinct label,  name  FROM mdl_feedback_item WHERE label LIKE 'com$numero_item%' order by id desc";
 			$nomitems = $DB->get_records_sql($sql_item);
 			$out = true;
 			foreach($nomitems as $n=>$nomitem) {

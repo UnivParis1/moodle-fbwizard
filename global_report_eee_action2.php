@@ -84,7 +84,7 @@ if (is_siteadmin()) {
                 $array_csv[$cptl][6]='niveau';         
 		
 
-		$select = "select distinct fi.label, fi.name from mdl_feedback f inner join mdl_feedback_item fi on (f.id=fi.feedback) where f.course=? and fi.name!='' and fi.label not like 'com%' and fi.name!='label'";
+		$select = "select distinct fi.label, fi.name from mdl_feedback f inner join mdl_feedback_item fi on (f.id=fi.feedback) where f.course=? and fi.name!='' and fi.label not like 'com%' and fi.name!='label' order by fi.position";
 		$obj_items = $DB->get_records_sql($select,array($courseid));
 		foreach ($obj_items as $i=>$row) {
 			$items[$cptc]['label'] = $row->label;
@@ -136,7 +136,7 @@ if (is_siteadmin()) {
 						if ($answer->typ== 'multichoice') {
 							$presentation = str_replace("r>>>>>", "", $answer->presentation);
 							$presentation = str_replace("<<<<<1", "", $presentation);
-							$$pres_array = explode("|",$presentation);
+							$pres_array = explode("|",$presentation);
 							$ans_array = explode("|",$answer->value);
 							$reponse ="";
 
