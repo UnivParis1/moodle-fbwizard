@@ -136,9 +136,15 @@ if (is_siteadmin()) {
 						if ($answer->typ== 'multichoice') {
 							$presentation = str_replace("r>>>>>", "", $answer->presentation);
 							$presentation = str_replace("<<<<<1", "", $presentation);
-							$ans_array = explode("|",$presentation);
-							if (!empty($ans_array[intval($answer->value) - 1]))
-								$array_csv[$cptl][$p]= rtrim(html_entity_decode(strip_tags( $ans_array[intval($answer->value) - 1])));
+							$$pres_array = explode("|",$presentation);
+							$ans_array = explode("|",$answer->value);
+							$reponse ="";
+
+							foreach ($ans_array as $key => $value) {
+								$reponse .= $pres_array[intval($value) - 1] ."</br>";
+							}
+								
+							$array_csv[$cptl][$p]= rtrim(html_entity_decode(strip_tags( $reponse)));
 			
 						} else {
 							$array_csv[$cptl][$p]=html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
