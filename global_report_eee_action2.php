@@ -77,20 +77,20 @@ if (is_siteadmin()) {
 
 		$array_csv[$cptl][0]='Userid';
 		$array_csv[$cptl][1]='UFR';
-                $array_csv[$cptl][2]='Nom du cours';         
-                $array_csv[$cptl][3]='COD_ETP';         
-                $array_csv[$cptl][4]='COD_VRS_VET';         
-                $array_csv[$cptl][5]='COD_TPD_ETB';         
-                $array_csv[$cptl][6]='niveau';         
+        $array_csv[$cptl][2]='Nom du cours';         
+        $array_csv[$cptl][3]='COD_ETP';         
+        $array_csv[$cptl][4]='COD_VRS_VET';         
+        $array_csv[$cptl][5]='COD_TPD_ETB';         
+        $array_csv[$cptl][6]='niveau';         
 		
 
-		$select = "select distinct fi.label, fi.name from mdl_feedback f inner join mdl_feedback_item fi on (f.id=fi.feedback) where f.course=? and fi.name!='' and fi.label not like 'com%' and fi.name!='label' order by fi.position";
+		$select = "select distinct fi.label, fi.name from mdl_feedback f inner join mdl_feedback_item fi on (f.id=fi.feedback) where f.course=? and fi.name!='' and fi.name!='label' order by fi.position";
 		$obj_items = $DB->get_records_sql($select,array($courseid));
 		foreach ($obj_items as $i=>$row) {
 			$items[$cptc]['label'] = $row->label;
 			$items[$cptc]['name'] = $row->name;
 			$cptc++;
-			$array_csv[$cptl][$cptc]='('.$row->label.') '.$row->name;
+			$array_csv[$cptl][$cptc]='('.$row->label.') ';
 		} 
 		
 		
@@ -111,24 +111,24 @@ if (is_siteadmin()) {
 			$cptl++;
 			$userid =$user->userid;
 			$array_csv[$cptl][0]=$user->userid;
-                	$array_csv[$cptl][1]=$ufr;
-                	$array_csv[$cptl][2]=$lib_course;
-                	$array_csv[$cptl][3]=$cod_etp;
-                	$array_csv[$cptl][4]=$cod_vrs_vet;
-                	$array_csv[$cptl][5]=$cod_tpd_etb;
-                	$array_csv[$cptl][6]=$niveau;
+        	$array_csv[$cptl][1]=$ufr;
+        	$array_csv[$cptl][2]=$lib_course;
+        	$array_csv[$cptl][3]=$cod_etp;
+        	$array_csv[$cptl][4]=$cod_vrs_vet;
+        	$array_csv[$cptl][5]=$cod_tpd_etb;
+        	$array_csv[$cptl][6]=$niveau;
 
 			for($p=7;$p<count($items)+7;$p++ ){ 
 				$array_csv[$cptl][$p] = '-';
 				$sql_answers = "	SELECT fi.id, fi.name, fi.label, fi.presentation, fi.typ, fbv .  *
 						FROM mdl_feedback_value fbv, mdl_feedback_completed fbc, mdl_feedback f, mdl_feedback_item fi
 						WHERE f.course=$courseid
-						 	AND fbv.completed = fbc.id
-						 	AND fbv.item=fi.id
-						 	AND fi.feedback = f.id
-						 	AND fbc.userid = $userid
-							AND fi.label like '".$items[$p-1]['label']."'
-							and fi.name!='label'
+					 	AND fbv.completed = fbc.id
+					 	AND fbv.item=fi.id
+					 	AND fi.feedback = f.id
+					 	AND fbc.userid = $userid
+						AND fi.label like '".$items[$p-1]['label']."'
+						and fi.name!='label'
 						ORDER BY fbc.userid, fi.position;";
 				$answers = $DB->get_records_sql($sql_answers);
 				if (!empty($answers)) {
@@ -136,11 +136,13 @@ if (is_siteadmin()) {
 						if ($answer->typ== 'multichoice') {
 							$presentation = str_replace("r>>>>>", "", $answer->presentation);
 							$presentation = str_replace("<<<<<1", "", $presentation);
+							$presentation = str_replace("c>>>>>", "", $presentation);
 							$pres_array = explode("|",$presentation);
 							$ans_array = explode("|",$answer->value);
 							$reponse ="";
 
 							foreach ($ans_array as $key => $value) {
+								$reponse.= $key > 0 ? " / " : "";
 								$reponse .= $pres_array[intval($value) - 1] ."</br>";
 							}
 								
