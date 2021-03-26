@@ -78,20 +78,25 @@ if (is_siteadmin()) {
 		$array_csv[$cpt][5]='Utilisateur';
 		$array_csv[$cpt][6]='Date';
 		$cpt_col_item = 6; 
-		for ($numero_item=1;$numero_item < 20; $numero_item++) {
-			$sql_item = "SELECT distinct label,  name  FROM mdl_feedback_item WHERE label LIKE 'com$numero_item%' order by id desc";
-			$nomitems = $DB->get_records_sql($sql_item);
-			$out = true;
-			foreach($nomitems as $n=>$nomitem) {
-				 if ($out) {
-				 	if (!empty($nomitem->name)) {
-						$array_csv[$cpt][$cpt_col_item+$numero_item]= $nomitem->label.'-'. $nomitem->name;
-					}
-			 	$out = false;
-				 }
-			}
-			
+		$cpt_col_plus =1;
+
+		// 767 est le cours modèle pour les M2
+		$sql_item = "SELECT distinct label,  fi.name  
+		FROM mdl_feedback_item fi 
+		inner join mdl_feedback f on f.id=fi.feedback
+		inner join mdl_course c on f.course= c.id
+		WHERE label LIKE 'com%/%'  
+		and c.id=767
+		order by fi.position ";
+		$nomitems = $DB->get_records_sql($sql_item);
+		foreach($nomitems as $n=>$nomitem) {
+			 	if (!empty($nomitem->name)) {
+					$array_csv[$cpt][$cpt_col_item+$cpt_col_plus ]= $nomitem->label;
+					$cpt_col_plus ++;
+			 }
 		}
+			
+		
 		$cpt++;
 		// recherche de tous les cours avec feedbacks de la catégorie séléctionnée
 		$sql_course = "	SELECT c.id as id, c.category as category, c.fullname as fullname, f.id as feedbackid 
@@ -158,9 +163,17 @@ if (is_siteadmin()) {
 					if ($answer->typ== 'multichoice') {
 						$presentation = str_replace("r>>>>>", "", $answer->presentation);
 						$presentation = str_replace("<<<<<1", "", $presentation);
-						$ans_array = explode("|",$presentation);
-						if (!empty($ans_array[intval($answer->value) - 1]))
-							$array_csv[$cpt][6+$place]= rtrim(html_entity_decode(strip_tags( $ans_array[intval($answer->value) - 1])));
+						$presentation = str_replace("c>>>>>", "", $presentation);
+						$pres_array = explode("|",$presentation);
+						$ans_array = explode("|",$answer->value);
+						$reponse ="";
+
+						foreach ($ans_array as $key => $value) {
+							$reponse.= $key > 0 ? " / " : "";
+							$reponse .= $pres_array[intval($value) - 1] ."</br>";
+						}
+							
+						$array_csv[$cptl][6+$place]= rtrim(html_entity_decode(strip_tags( $reponse)));
 
 					} else {
 						$array_csv[$cpt][6+$place]= html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
