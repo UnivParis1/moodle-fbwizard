@@ -170,7 +170,7 @@ if (is_siteadmin()) {
 
 						foreach ($ans_array as $key => $value) {
 							$reponse.= $key > 0 ? " / " : "";
-							$reponse .= $pres_array[intval($value) - 1] ;
+							$reponse .= rtrim($pres_array[intval($value) - 1]) ;
 						}
 							
 						$array_csv[$cpt][6+$place]= rtrim(html_entity_decode(strip_tags( $reponse)));
