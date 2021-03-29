@@ -324,7 +324,7 @@ function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_e
         $custominfo_data = custominfo_data::type('course');
         $custominfo_data->load_data($course);
         $custominfo_data = custominfo_data::type('course');
-        $SESSION->wizard['form_step2']['up1datefermeture'] = $course->profile_field_up1datefermeture;
+        $SESSION->wizard['form_step2']['up1datefermeture'] =strtotime(date('m') <= 6 ? "July 31" : "next year January 31");
         $summary = array('text' => $course->summary, 'format' => $course->summaryformat);
     }
 	$formdata = array(
@@ -360,7 +360,7 @@ function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_e
         		'format' => $course->summaryformat 
         	),
         	'startdate' => time(),
-        	'up1datefermeture' => time(),
+        	'up1datefermeture' => strtotime(date('m') <= 6 ? "July 31" : "next year January 31"),
         	'mform_isexpanded_id_URL' => 1,
         	'myurl' => '',
         	'visible'  => $course->visible,
