@@ -75,7 +75,7 @@ if (is_siteadmin()) {
 
 		foreach ($idCourse as $info){
 			$result = getNbReponseByCourse($info->id);
-			
+			$ufr = getUfrByCourse($info->id);
 			foreach ($result as $id=>$reponse)
 			{
 				$idCourse = $info->id;
@@ -87,6 +87,7 @@ if (is_siteadmin()) {
 					$listDate[$thisDate] = $thisDate;
 				$counter[$idCourse]["courseInfo"]['courseName']= $courseName ;
 				$counter[$idCourse]["courseInfo"]["codEtp"]= $codEtp ;
+				$counter[$idCourse]["courseInfo"]["ufr"]= $ufr ;
 				if (!empty($counter[$idCourse][$thisDate])) 
 					$counter[$idCourse][$thisDate]+= 1;
 				else 
@@ -97,6 +98,8 @@ if (is_siteadmin()) {
 		asort($listDate);
 		$cptLine = 1;
 		$cptColumn = 1;
+		$array_csv[$cptLine][$cptColumn]='UFR';
+		$cptColumn ++;
 		$array_csv[$cptLine][$cptColumn]='';
 		$cptColumn ++;	
 		$array_csv[$cptLine][$cptColumn]='Code Etape';
@@ -110,6 +113,8 @@ if (is_siteadmin()) {
 		$cptLine++;
 		foreach ( $counter as $idCourse=>$answers){
 			$cptColumn=1;
+			$array_csv[$cptLine][$cptColumn]=Nettoyer_chaine($answers["courseInfo"]["ufr"]);
+			$cptColumn ++;
  			$array_csv[$cptLine][$cptColumn]=Nettoyer_chaine($answers["courseInfo"]["courseName"]);
  			$cptColumn ++;
  			$array_csv[$cptLine][$cptColumn]=Nettoyer_chaine($answers["courseInfo"]["codEtp"]);
