@@ -654,3 +654,20 @@ function getNbReponseByCourse($id_course) {
         $obj_courseById =  $DB->get_records_sql($select,array($id_course));
         return $obj_courseById ;
 }
+
+
+
+/*
+* get UFR for a course
+*/ 
+function getUfrByCourse($id_course) {
+        global $DB;
+        $select = "select ccParent.name as ufrName
+        from {course} c
+		INNER JOIN {course_categories} cc on c.category = cc.id
+		INNER JOIN {course_categories} ccParent on c.category = ccParent.id
+        WHERE c.id=?
+        and ccParent.idnumber like '3:%'";
+        $ufr =  $DB->get_record_sql($select,array($id_course));
+        return $ufr->ufrname ;
+}
