@@ -139,7 +139,7 @@ if (is_siteadmin()) {
 					
 					if ($cptIndex == sizeof($answers) )
 					{
-						while ($cptColumn <= sizeof($listDate)+2)
+						while ($cptColumn <= sizeof($listDate)+3)
 						{
 							if (empty($array_csv[$cptLine][$cptColumn]))
                         	{
@@ -158,6 +158,8 @@ if (is_siteadmin()) {
 	}
 	else if(!empty( $_GET['id'])){
 		$result = getNbReponseByCourse($_GET['id']);
+		$ufr = getUfrByCourse($_GET['id']);
+
 		$cptTotal = 0;
 
         foreach ($result as $id=>$reponse)
@@ -175,11 +177,13 @@ if (is_siteadmin()) {
                 $counter[$thisDate]=1;
 
         }
-		$array_csv[1][1]=" ";
-		$array_csv[2][1]=Nettoyer_chaine($counter["courseName"]);
-		$array_csv[1][2]="Code Etape";
-		$array_csv[2][2]= $counter["codEtp"];
-		$cptColumn=3;
+		$array_csv[1][1]="UFR";
+		$array_csv[2][1]= $ufr ;
+		$array_csv[1][2]=" ";
+		$array_csv[2][2]=Nettoyer_chaine($counter["courseName"]);
+		$array_csv[1][3]="Code Etape";
+		$array_csv[2][3]= $counter["codEtp"];
+		$cptColumn=4;
 		foreach ( $counter as $dateAnswer=>$nbAnswer){
 			
 			if ($dateAnswer != "courseName" && $dateAnswer != "codEtp"){
