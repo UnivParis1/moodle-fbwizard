@@ -7,7 +7,7 @@
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php'); // global moodle config file.
 require_once($CFG->dirroot.'/course/lib.php');
-require_once($CFG->libdir.'/coursecatlib.php');
+//require_once($CFG->libdir.'/coursecatlib.php');
 require_once($CFG->libdir.'/custominfo/lib_data.php');
 require_once($CFG->dirroot.'/local/crswizard/lib_wizard.php');
 require_once($CFG->dirroot.'/local/crswizard/wizard_modele_duplicate.class.php');
@@ -165,6 +165,28 @@ function getCohorte($cod_elp) {
 	
 }
 
+
+/**
+ * Retourne les infos liés à une cohorte d'une étape
+ * @return Array
+ */
+function getCohorteMembers($cod_elp) {
+	global $DB;
+	$select = "SELECT value from {config_plugins} where name =? and plugin =?";
+	$obj = $DB->get_records_sql($select,array('cohort_period','local_cohortsyncup1'));
+	foreach ($obj as $key => $value) {
+		$year = $value;
+	}
+	$select = "SELECT count(cm.id) as count FROM {cohort} c inner join {cohort_members} cm on cm.cohortid=c.id WHERE idnumber like ?  group by c.id";
+	$obj = $DB->get_records_sql($select,array('diploma-'.$cod_elp.'-'.$year->value));
+	$result = array();
+	foreach ($obj as $key => $value) {
+		$result = $value;
+	}
+    return $result;
+	
+}
+
 /**
  * 
         $data->cod_tpd_etb = $row['cod_tpd_etb'];
@@ -312,10 +334,11 @@ function getInfoCourse($id) {
  * Création de la variable formdata pour utiliser le plugin crswizard
  * 
  */
-function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_etb,$id_modele) {
-	global $DB, $CFG, $USER;;
+function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_etb,$id_modele,$user_id) {
+	global $DB, $CFG, $USER;
+	
 	$infos_course = getInfoCourse($id_modele);
-    $user = $DB->get_record('user', array('username' => $USER->username));
+    $user = $DB->get_record('user', array('id' => $user_id));
     $cohorte = $DB->get_record('cohort', array('id' => $id_cohorte));
 
     $infos_category = getInfoCategory($category);
@@ -403,8 +426,8 @@ function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_e
         	'role' => 'editingteacher',
         	'something' => '',
         	'user' => array(
-        		'editingteacher' => array($USER->email),
-        		'responsable_epi' => array($USER->email)
+        		'editingteacher' => array($user->email),
+        		'responsable_epi' => array($user->email)
         	),
         	'stepin' => 4,
         	'step' => '',
@@ -482,13 +505,14 @@ function create_courses() {
     $liste_course_2_deploye = $DB->get_records('fbwizard', array('deployed' => 0));
     $liste_deployed = '';
     foreach ($liste_course_2_deploye as $i=>$obj) {
-    	    	$model_courseid = getIdModèleByCodTpdEtb($obj->cod_etp,$obj->cod_vrs_vet,$obj->cod_tpd_etb);
+    	$model_courseid = getIdModèleByCodTpdEtb($obj->cod_etp,$obj->cod_vrs_vet,$obj->cod_tpd_etb);
 		$formdata= create_the_formdata_variable
 											($obj->category,
 											$obj->lib_etp, 
 											$obj->cohorte,
 											$obj->cod_tpd_etb,
-											$model_courseid);
+											$model_courseid,
+											$obj->userid);
 		$corewizard = new wizard_core($formdata, $USER);
 	    $errorMsg = $corewizard->create_course_to_validate();
 	    // récupère l'id du cours créé et mettre à jour fbwizard
@@ -496,10 +520,13 @@ function create_courses() {
 	    $objmax = $DB->get_record_sql($SELECT,array());
 		(empty($objmax->maxid))?$idcours=0:$idcours=$objmax->maxid;
 		$email_user[$obj->userid][] = array ('id'=>$idcours,'lib' =>$obj->lib_etp, 'liste_deployed'=>'
-  -'.$obj->lib_etp.' : '.$CFG->wwwroot.'/course/view.php?id='.$idcours);
+ 		 -'.$obj->lib_etp.' : '.$CFG->wwwroot.'/course/view.php?id='.$idcours);
 		$obj->courseid=$idcours;
 		$obj->deployed = 1;
 		$DB->update_record('fbwizard', $obj, true);
+		$update2 = " UPDATE mdl_course_format_options set value= 'feedback'
+                         WHERE courseid= $idcours and format='singleactivity' and name= 'activitytype'";
+		$DB->execute($update2);
 		// Super on a créé le cours sur modèle
 		/*	@TODO : - Récupérer l'id de feedback
 		 * 			- Dupliquer le feedback

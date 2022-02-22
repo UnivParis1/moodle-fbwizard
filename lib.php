@@ -16,7 +16,8 @@ function local_fbwizard_extend_navigation(global_navigation $navigation) {
     $context = $PAGE->context;
 
 if (is_siteadmin()) {
-        $node1 = $navigation->add('Déploiement automaique de feedbacks');
+        $node1 = $navigation->add('Déploiement automatique de feedbacks');
         $node2 = $node1->add('Création ', new moodle_url('/local/fbwizard/index.php'));
+        $node2 = $node1->add('Rapport ', new moodle_url('/local/fbwizard/global_report_eee.php'));
     } 
 }

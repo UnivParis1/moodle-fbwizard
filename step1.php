@@ -58,12 +58,15 @@ if (is_siteadmin()) {
 		foreach ($liste_formations as $key=>$value) {
 			$cohorte = $value['category'];
 			$cohorte = getCohorte($value['cod_etp']);
+			$cohort_members = getCohorteMembers($value['cod_etp'])->count;
+
 			if (!empty($cohorte[0][0])) {
 				$liste_formations[$key]['cohortes'] = '<span>'.$cohorte[0][1].'</span>
 						<input type="hidden" name="'.$value['cod_etp'].'_cohorte" value="'.$cohorte[0][0].'">';
 			} else {
 				$liste_formations[$key]['cohortes'] = '';
 			}
+			$liste_formations[$key]['cohortes_members'] = $cohort_members;
 			if (!isdeclaredToDeploy($value['category'],$value['cod_tpd_etb'],$value['cod_etp'],$value['cod_vrs_vet']))
 				$liste_formations[$key]["checkbox"] = '<input type="checkbox" name="'.$value['cod_etp'].'">';
 			else {
@@ -74,7 +77,7 @@ if (is_siteadmin()) {
 		echo ' <label for="search">Trier :</label> <input type="text" id="search" placeholder="Rechercher">';
 		$table2 = new html_table();
 		$table2->id = "mytable";
-		$table2->head = array('Category', 'COD_TPD_ETB','COD_ETP', 'COD_VRS_VET','LIB_ETP','COHORTE ASSOCIEE','&nbsp;');
+		$table2->head = array('Category', 'COD_TPD_ETB','COD_ETP', 'COD_VRS_VET','LIB_ETP','COHORTE ASSOCIEE','NOMBRE D\'INSCRIT','&nbsp;');
 		$table2->data = $liste_formations;
 		echo html_writer::table($table2);	
 		echo '<input type="submit" class="button-action" name="select_mail" value="valider" >';
