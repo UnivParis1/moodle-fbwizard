@@ -217,7 +217,7 @@ function getIdModèleByCodTpdEtb($cod_etp, $cod_vrs_vet ,$cod_tpd_etb) {
 	 * L2-D2 : 231
 	 * L3-D3 : 232
 	 * LP-DP : 233
-	 * M1-E1: 645
+	 * M1-E1: 1505
 	 * M2-E2 : 767
 	 * 
 	 */
@@ -236,7 +236,7 @@ function getIdModèleByCodTpdEtb($cod_etp, $cod_vrs_vet ,$cod_tpd_etb) {
     } elseif ($cod_tpd_etb == 'LP' || $cod_tpd_etb == 'DP') {
     	return 233;
     } elseif ($cod_tpd_etb == 'M1' || $cod_tpd_etb == 'E1') {
-    	return 645;
+    	return 1505;
     } elseif ($cod_tpd_etb == 'M2' || $cod_tpd_etb == 'E2') {
     	return 767;
     }
@@ -542,18 +542,21 @@ function create_courses() {
 		
 		///////////////////// QUESTION SUBSIDIAIRE //////////////////////
     		$obj_apogee = new apogee_connecteur();
+    	$get_id_first_com = "SELECT id FROM {feedback_item} WHERE feedback=? and label=?";
+		$id_first_com = $DB->get_record_sql($get_id_first_com,array($feedback->id,"com1/"));
+
 		$t = $obj_apogee->getListSemestres($obj->cod_etp,$obj->cod_vrs_vet);
 		$list_cod_elp = array();
 		for($i=0;$i<count($t);$i++) {
 			$ordremax++;
-			insert_item($feedback->id,$t[$i]['name'],$ordremax,$t[$i]['COD_ELP'],true);
+			insert_item($feedback->id,$t[$i]['name'],$ordremax,$t[$i]['COD_ELP'],true,$id_first_com->id);
 			$o = array();
 			$obj_apogee->GetilsElp($t[$i]['COD_ELP'],null,$o);
 			for ($j=0;$j<count($o);$j++) {
 				if (!in_array($o[$j]['code'], $list_cod_elp)) {
 					$list_cod_elp[] = $o[$j]['code'];
                                 	$ordremax++;
-                                	insert_item($feedback->id,$o[$j]['name'],$ordremax,$o[$j]['code']);
+                                	insert_item($feedback->id,$o[$j]['name'],$ordremax,$o[$j]['code'],false,$id_first_com->id);
 				}
 			}
 		}
@@ -609,8 +612,9 @@ function create_label($lib) {
  * @param string $cod_elp
  * @param bool $label : Vrai si il s'agit d'un semestre
  */
-function insert_item($feedback,$lib,$order,$cod_elp,$label = false) {
+function insert_item($feedback,$lib,$order,$cod_elp,$label = false,$id_first_com) {
 	global $DB;
+	
 	$data = new stdClass();
 	$data->feedback = $feedback;
 	$data->template = 0;
@@ -634,9 +638,10 @@ function insert_item($feedback,$lib,$order,$cod_elp,$label = false) {
 		$data->hasvalue = 1;
 		$data->options = 'h';
 	}
+	$data->dependitem = $id_first_com;
+	$data->dependvalue = 'Non';
 	$data->position = $order;
 	$data->required = 0;
-	$data->dependitem = '';
 	$DB->insert_record('feedback_item', $data);
 }
 
