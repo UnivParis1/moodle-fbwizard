@@ -80,13 +80,23 @@ if (is_siteadmin()) {
 		$cpt_col_item = 6; 
 		$cpt_col_plus =1;
 
-		// 767 est le cours modèle pour les M2
+		$idcoursereference = 0;
+		$sql_course= "SELECT c.id  
+		FROM mdl_course c 
+		inner join mdl_course_categories cc on c.category= cc.id
+		WHERE path like '/".$_POST['idcategorie'] ."/%'  order by c.id asc";
+		$course = $DB->get_records_sql($sql_course);
+		foreach($course as $n=>$idcourse) {
+			 	$idcoursereference=$idcourse->id;
+		}
+		
+		
 		$sql_item = "SELECT distinct label,  fi.name  
 		FROM mdl_feedback_item fi 
 		inner join mdl_feedback f on f.id=fi.feedback
 		inner join mdl_course c on f.course= c.id
 		WHERE label LIKE 'com%/%'  
-		and c.id=767
+		and c.id=$idcoursereference
 		order by fi.position ";
 		$nomitems = $DB->get_records_sql($sql_item);
 		foreach($nomitems as $n=>$nomitem) {
@@ -158,6 +168,7 @@ if (is_siteadmin()) {
 										AND fi.label like 'com%'
 									ORDER BY fbc.userid, fi.position;";
 				$answers = $DB->get_records_sql($sql_answers);
+				$column =1;
 				foreach($answers as $a=>$answer) {
 					$place = intval(str_replace('com','',str_replace('commun','',$answer->label)));
 					if ($answer->typ== 'multichoice') {
@@ -173,11 +184,12 @@ if (is_siteadmin()) {
 							$reponse .= rtrim($pres_array[intval($value) - 1]) ;
 						}
 							
-						$array_csv[$cpt][6+$place]= rtrim(html_entity_decode(strip_tags( $reponse)));
+						$array_csv[$cpt][6+$column]= rtrim(html_entity_decode(strip_tags( $reponse)));
 
 					} else {
-						$array_csv[$cpt][6+$place]= html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
+						$array_csv[$cpt][6+$column]= html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
 					}
+					$column++;
 				}
 				$cpt++;
 			}
