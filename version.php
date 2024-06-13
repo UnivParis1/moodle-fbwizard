@@ -8,7 +8,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 20160620;        					// The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 20240305;        					// The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2013111801;        				// Requires this Moodle version
 $plugin->component = 'local_fbwizard';       	// Full name of the plugin (used for diagnostics)
 

@@ -8,7 +8,6 @@
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php'); // global moodle config file.
 require_once($CFG->dirroot.'/course/lib.php');
 //require_once($CFG->libdir.'/coursecatlib.php');
-require_once($CFG->libdir.'/custominfo/lib_data.php');
 require_once($CFG->dirroot.'/local/crswizard/lib_wizard.php');
 require_once($CFG->dirroot.'/local/crswizard/wizard_modele_duplicate.class.php');
 require_once($CFG->dirroot.'/local/crswizard/wizard_core.class.php');
@@ -210,37 +209,30 @@ function isdeclaredToDeploy($category,$cod_tpd_etb,$cod_etp,$cod_vrs_vet) {
 	
 }
 
-function getIdModèleByCodTpdEtb($cod_etp, $cod_vrs_vet ,$cod_tpd_etb) {
+function getIdModèleByCodTpdEtb($cod_etp, $cod_vrs_vet ,$cod_tpd_etb,$category=null) {
 	/*
-	 * On utilise des id fixes :
-	 * L1-D1 : 230
-	 * L2-D2 : 231
-	 * L3-D3 : 232
-	 * LP-DP : 233
-	 * M1-E1: 1505
-	 * M2-E2 : 767
+	 * On utilise des id fixes
 	 * 
 	 */
 	$niv=0;
 	$obj_apogee = new apogee_connecteur();
-    $niv = $obj_apogee->getCodSisDaaMin($cod_etp, $cod_vrs_vet ,$cod_tpd_etb) ;
-    if ($cod_tpd_etb == 'L1' || $cod_tpd_etb == 'D1') {
-    	return 230;
-    } elseif ($cod_tpd_etb == 'L2' || $cod_tpd_etb == 'D2') {
-    	if ($niv == 1)  return 230;
-    	return 231;
-    } elseif ($cod_tpd_etb == 'L3' || $cod_tpd_etb == 'D3') {
-    	if ($niv == 1) return 230;
-    	if ($niv == 2) return 231;
-    	return 232;	
-    } elseif ($cod_tpd_etb == 'LP' || $cod_tpd_etb == 'DP') {
-    	return 233;
-    } elseif ($cod_tpd_etb == 'M1' || $cod_tpd_etb == 'E1') {
-    	return 1505;
-    } elseif ($cod_tpd_etb == 'M2' || $cod_tpd_etb == 'E2') {
-    	return 767;
-    }
-
+    $niv = $obj_apogee->getCodSisDaaMin($cod_etp, $cod_vrs_vet ,$cod_tpd_etb);
+	if ($cod_tpd_etb == 'L1' || $cod_tpd_etb == 'D1') {
+		return 2062;
+	} elseif ($cod_tpd_etb == 'L2' || $cod_tpd_etb == 'D2') {
+		if ($niv == 1)  return 2062;
+		return 2063;
+	} elseif ($cod_tpd_etb == 'L3' || $cod_tpd_etb == 'D3') {
+		if ($niv == 1) return 2062;
+		if ($niv == 2) return 2063;
+		return 2065;	
+	} elseif ($cod_tpd_etb == 'LP' || $cod_tpd_etb == 'DP') {
+		return 2066;
+	} elseif ($cod_tpd_etb == 'M1' || $cod_tpd_etb == 'E1') {
+		return 1505;
+	} elseif ($cod_tpd_etb == 'M2' || $cod_tpd_etb == 'E2') {
+		return 767;
+	} 
 }
 
 
@@ -344,10 +336,7 @@ function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_e
     $infos_category = getInfoCategory($category);
     $course = $DB->get_record('course', array('id'=>$id_modele), '*', MUST_EXIST);
     if ($course) {
-        $custominfo_data = custominfo_data::type('course');
-        $custominfo_data->load_data($course);
-        $custominfo_data = custominfo_data::type('course');
-        $SESSION->wizard['form_step2']['up1datefermeture'] =strtotime(date('m') <= 6 ? "July 31" : "next year January 31");
+       // $SESSION->wizard['form_step2']['up1datefermeture'] =strtotime(date('m') <= 6 ? "July 31" : "next year January 31");
         $summary = array('text' => $course->summary, 'format' => $course->summaryformat);
     }
 	$formdata = array(
@@ -360,7 +349,7 @@ function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_e
 
 	    'urlpfixe' => 'https://eee-test.univ-paris1.fr/fixe/',
 	    'wizardurl' => '/local/crswizard/index.php',
-	    'wizardcase' => 2,
+	    'wizardcase' => 3,
         'form_step1' => array(
               	'stepin' => 1,
 	            'modeletype' => 'selm1',
@@ -383,7 +372,7 @@ function create_the_formdata_variable($category,$lib_etp, $id_cohorte,$cod_tbd_e
         		'format' => $course->summaryformat 
         	),
         	'startdate' => time(),
-        	'up1datefermeture' => strtotime(date('m') <= 6 ? "July 31" : "next year January 31"),
+        	'enddate' => strtotime(date('m') <= 6 ? "July 31" : "next year January 31"),
         	'mform_isexpanded_id_URL' => 1,
         	'myurl' => '',
         	'visible'  => $course->visible,
@@ -488,8 +477,8 @@ function inserer_liste_cours_a_creer($liste) {
         $data->cod_vrs_vet = $row['cod_vrs_vet'];
         $data->lib_etp = $row['lib_etp'];
         $data->cohorte = $row['cohorte'];
-        $data->model_courseid = getIdModèleByCodTpdEtb($row['cod_etp'],$row['cod_vrs_vet'],$row['cod_tpd_etb']);
-        $DB->insert_record('fbwizard', $data);
+        $data->model_courseid = getIdModèleByCodTpdEtb($row['cod_etp'],$row['cod_vrs_vet'],$row['cod_tpd_etb'], $row['category']);
+      	$DB->insert_record('fbwizard', $data);
         unset($data);
 	}
 }
@@ -505,7 +494,7 @@ function create_courses() {
     $liste_course_2_deploye = $DB->get_records('fbwizard', array('deployed' => 0));
     $liste_deployed = '';
     foreach ($liste_course_2_deploye as $i=>$obj) {
-    	$model_courseid = getIdModèleByCodTpdEtb($obj->cod_etp,$obj->cod_vrs_vet,$obj->cod_tpd_etb);
+    	$model_courseid = getIdModèleByCodTpdEtb($obj->cod_etp,$obj->cod_vrs_vet,$obj->cod_tpd_etb,$obj->category);
 		$formdata= create_the_formdata_variable
 											($obj->category,
 											$obj->lib_etp, 
@@ -520,8 +509,8 @@ function create_courses() {
 	    $objmax = $DB->get_record_sql($SELECT,array());
 		(empty($objmax->maxid))?$idcours=0:$idcours=$objmax->maxid;
 		$email_user[$obj->userid][] = array ('id'=>$idcours,'lib' =>$obj->lib_etp, 'liste_deployed'=>'
- 		 -'.$obj->lib_etp.' : '.$CFG->wwwroot.'/course/view.php?id='.$idcours);
-		$obj->courseid=$idcours;
+ 		 -'.$obj->lib_etp.' : <a href="'.$CFG->wwwroot.'/course/view.php?id='.$idcours .'">'.$CFG->wwwroot.'/course/view.php?id='.$idcours .'</a> </br>');
+		$obj->courseid=$idcours ;
 		$obj->deployed = 1;
 		$DB->update_record('fbwizard', $obj, true);
 		$update2 = " UPDATE mdl_course_format_options set value= 'feedback'
@@ -581,6 +570,7 @@ function create_courses() {
  
                          $supportuser = core_user::get_support_user();
                          $user= core_user::get_user($userid);
+                         $user->mailformat=1;
                          email_to_user($user, $supportuser, $subject, $message);
                  }
 
@@ -639,7 +629,7 @@ function insert_item($feedback,$lib,$order,$cod_elp,$label = false,$id_first_com
 		$data->options = 'h';
 	}
 	$data->dependitem = $id_first_com;
-	$data->dependvalue = 'Non';
+	$data->dependvalue = 'Oui';
 	$data->position = $order;
 	$data->required = 0;
 	$DB->insert_record('feedback_item', $data);
@@ -703,3 +693,25 @@ function getUfrByCourse($id_course) {
         $ufr =  $DB->get_record_sql($select,array($id_course));
         return $ufr->ufrname ;
 }
+
+/**
+	 * get the count of completeds depending on the course identifier
+	 *
+	 * @param int $courseid
+	 * @return int count of completeds or 0
+	 */
+	function get_completeds_group_count($courseid) {
+		global $CFG, $DB;
+	 $select_feedback = "SELECT * from {feedback} where course = ?";
+		  if ($foundrecs = $DB->get_records_sql($select_feedback, array($courseid))) {
+			 $foundrecs = array_values($foundrecs);
+			 $id = $foundrecs[0]->id;
+			 if ($id) {
+				 $cm = get_coursemodule_from_id('feedback', $id);
+				 $mygroupid =null;
+				 $feedback = $DB->get_record("feedback", array("id"=>$id));
+				 return feedback_get_completeds_group_count($feedback, $mygroupid);
+			 }
+		 }
+		 return 0;
+ }

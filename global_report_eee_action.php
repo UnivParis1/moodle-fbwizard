@@ -35,14 +35,15 @@ function array2csv(array &$array) {
    }
    ob_start();
    $df = fopen("php://output", 'w');
-   fputcsv($df, array_keys(reset($array)));
+   fputcsv($df, array_keys(reset($array)),';', ' ');
    foreach ($array as $row) {
-      fputcsv($df, $row);
-   }
+		fputcsv($df,array_map('utf8_decode',array_values($row)),';', ' ');
+	}
    fclose($df);
    return ob_get_clean();
 }
 function Nettoyer_chaine($chaine) {
+	$chaine = preg_replace('/[\n,\r]+/', ' ',$chaine);
 	$chaine = str_replace('#039;', "'", $chaine);
 	$chaine = str_replace(';', ',', $chaine);
 	$chaine = html_entity_decode($chaine, ENT_QUOTES);
@@ -80,21 +81,21 @@ if (is_siteadmin()) {
 		$cpt_col_item = 6; 
 		$cpt_col_plus =1;
 
-		$idcoursereference = 0;
-		$sql_course= "SELECT c.id  
+		$idcoursereference = 2063;
+		/*$sql_course= "SELECT c.id  
 		FROM mdl_course c 
 		inner join mdl_course_categories cc on c.category= cc.id
 		WHERE path like '/".$_POST['idcategorie'] ."/%'  order by c.id asc";
 		$course = $DB->get_records_sql($sql_course);
 		foreach($course as $n=>$idcourse) {
 			 	$idcoursereference=$idcourse->id;
-		}
+		}*/
 		
-		
+		$tabCorrespondance= array();
 		$sql_item = "SELECT distinct label,  fi.name  
-		FROM mdl_feedback_item fi 
-		inner join mdl_feedback f on f.id=fi.feedback
-		inner join mdl_course c on f.course= c.id
+		FROM {feedback_item} fi 
+		inner join {feedback} f on f.id=fi.feedback
+		inner join {course} c on f.course= c.id
 		WHERE label LIKE 'com%/%'  
 		and c.id=$idcoursereference
 		order by fi.position ";
@@ -102,6 +103,7 @@ if (is_siteadmin()) {
 		foreach($nomitems as $n=>$nomitem) {
 			 	if (!empty($nomitem->name)) {
 					$array_csv[$cpt][$cpt_col_item+$cpt_col_plus ]= $nomitem->label;
+					$tabCorrespondance[$nomitem->label]= $cpt_col_item+$cpt_col_plus;
 					$cpt_col_plus ++;
 			 }
 		}
@@ -110,10 +112,10 @@ if (is_siteadmin()) {
 		$cpt++;
 		// recherche de tous les cours avec feedbacks de la catégorie séléctionnée
 		$sql_course = "	SELECT c.id as id, c.category as category, c.fullname as fullname, f.id as feedbackid 
-						FROM mdl_course c, mdl_feedback f 
+						FROM {course} c, {feedback} f 
 						WHERE c.id=f.course 
-						AND c.category in (select id from mdl_course_categories where path like '/$idcategorie/%' ) 
-						;";
+						AND c.category in (select id from {course_categories} where path like '/$idcategorie/%' ) 
+						order by c.category;";
 		
 		$courses = $DB->get_records_sql($sql_course);
 		foreach ($courses as $i=>$rowcourse) {
@@ -132,7 +134,7 @@ if (is_siteadmin()) {
 			$niveau = getNiveau($cod_etp, $cod_vrs_vet ,$cod_tpd_etb);
 			//insertion des items par user
 			$sql_users = "	SELECT distinct fbc.userid, fbc.timemodified
-							FROM mdl_feedback_value fbv, mdl_feedback_completed fbc, mdl_feedback f, mdl_feedback_item fi
+							FROM {feedback_value} fbv, {feedback_completed} fbc, {feedback} f, {feedback_item} fi
 							WHERE f.course=$courseid
 							 	AND fbv.completed = fbc.id
 							 	AND fbv.item=fi.id
@@ -145,21 +147,20 @@ if (is_siteadmin()) {
 				$array_csv[$cpt][3]=$cod_vrs_vet;
 				$array_csv[$cpt][4]=$niveau;
 				$array_csv[$cpt][5]=$user->userid;
-				$array_csv[$cpt][6]= date('d/m/Y',  $user->timemodified) . ' a '.date('H:i:s', $user->timemodified) ;
+				$array_csv[$cpt][6]= trim(date('d/m/Y',  $user->timemodified) . '-'.date('H:i:s', $user->timemodified) );
 				/**
 				 * El-Miqui : Correction Bug n°: 43783
 				 */
-				for($p=7;$p<=24;$p++ ){ 
+				for($p=7;$p<=count($tabCorrespondance)+6;$p++ ){ 
 						$array_csv[$cpt][$p] = '-';
 				}
 				/*
 				 * FIN CORRECTION
 				 */
 
-//echo $courseid.'<br />';
 				$userid =$user->userid;
 				$sql_answers = "	SELECT fi.id as fid, fi.name, fi.label, fi.presentation, fi.typ, fbv .  *, fbc.id as fbcid
-									FROM mdl_feedback_value fbv, mdl_feedback_completed fbc, mdl_feedback f, mdl_feedback_item fi
+									FROM {feedback_value} fbv, {feedback_completed} fbc, {feedback} f, {feedback_item} fi
 									WHERE f.course=$courseid
 									 	AND fbv.completed = fbc.id
 									 	AND fbv.item=fi.id
@@ -168,28 +169,27 @@ if (is_siteadmin()) {
 										AND fi.label like 'com%'
 									ORDER BY fbc.userid, fi.position;";
 				$answers = $DB->get_records_sql($sql_answers);
-				$column =1;
 				foreach($answers as $a=>$answer) {
-					$place = intval(str_replace('com','',str_replace('commun','',$answer->label)));
-					if ($answer->typ== 'multichoice') {
-						$presentation = str_replace("r>>>>>", "", $answer->presentation);
-						$presentation = str_replace("<<<<<1", "", $presentation);
-						$presentation = str_replace("c>>>>>", "", $presentation);
-						$pres_array = explode("|",$presentation);
-						$ans_array = explode("|",$answer->value);
-						$reponse ="";
+					if ($answer->value !="" && array_key_exists($answer->label,$tabCorrespondance)){
+						if ($answer->typ== 'multichoice') {
+							$presentation = str_replace("r>>>>>", "", $answer->presentation);
+							$presentation = str_replace("<<<<<1", "", $presentation);
+							$presentation = str_replace("c>>>>>", "", $presentation);
+							$pres_array = explode("|",$presentation);
+							$ans_array = explode("|",$answer->value);
+							$reponse ="";
 
-						foreach ($ans_array as $key => $value) {
-							$reponse.= $key > 0 ? " / " : "";
-							$reponse .= rtrim($pres_array[intval($value) - 1]) ;
-						}
+							foreach ($ans_array as $key => $value) {
+								$reponse.= $key > 0 ? " / " : "";
+								$reponse .= rtrim($pres_array[intval($value) - 1]) ;
+							}
+							$array_csv[$cpt][$tabCorrespondance[$answer->label]]= rtrim(html_entity_decode(strip_tags( $reponse)));
+
+						} else {
 							
-						$array_csv[$cpt][6+$column]= rtrim(html_entity_decode(strip_tags( $reponse)));
-
-					} else {
-						$array_csv[$cpt][6+$column]= html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
+							$array_csv[$cpt][$tabCorrespondance[$answer->label]]= html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
+						}
 					}
-					$column++;
 				}
 				$cpt++;
 			}

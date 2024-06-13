@@ -13,7 +13,6 @@ define('CLI_SCRIPT', true);
 require_once(__DIR__ . '/../../config.php');
 require_once('locallib.php');
 require_once('apogee.class.php');
-require_once($CFG->libdir.'/custominfo/lib.php'); 
 require_once($CFG->libdir.'/clilib.php');      // cli only functions
 // now get cli options
 list($options, $unrecognized) = cli_get_params(array(
@@ -36,7 +35,7 @@ Options:
 
 
 Example:
-/usr/bin/php local/cohortsyncup1/cli/create.php --init 
+/usr/bin/php local/fbwizard/create_feedback_cli.php --init
 
 ";
 

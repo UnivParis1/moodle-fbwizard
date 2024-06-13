@@ -3,10 +3,7 @@ require_once("../../config.php");
 require_once("../../mod/feedback/lib.php");
 require_once('locallib.php');
 require_login();
-
-@ini_set('display_errors', '1'); // NOT FOR PRODUCTION SERVERS!
-$CFG->debug = 38911;  // DEBUG_DEVELOPER // NOT FOR PRODUCTION SERVERS!
-$CFG->debugdisplay = true;   // NOT FOR PRODUCTION SERVERS!
+global  $CFG,$DB;
 $idcategorie=0;
 $url = new moodle_url('/local/fbwizard/global_report_eee.php');
 $PAGE->set_url($url);
@@ -73,14 +70,16 @@ EOF;
         foreach ($obj as $i=>$row) {
                 $cat = getComposante($row->category);
                 echo '<h3>'.$cat['name'].'</h3>';
-		$select = "select * from {fbwizard} where category=? order by lib_etp";
+		$select = "select fb.* from {fbwizard} fb  inner join {course} c on c.id=fb.courseid where fb.category=? order by lib_etp";
 		$obj2 = $DB->get_records_sql($select,array($row->category));
 		$table = new html_table();
-		$table->head = array('Libellé','Rapport','Reporting quotidien');
+		$table->head = array('Libellé','Nbre de réponse','Rapport','Reporting quotidien');
 		$data = array();
 		foreach($obj2 as $j=>$row2) {
+			$completedscount = get_completeds_group_count($row2->courseid);
 			$data[] = array(
-				$row2->lib_etp,
+				'<a href="'.$CFG->wwwroot.'/course/view.php?id='.$row2->courseid.'" target="_BLANK">'.$row2->lib_etp.'</a>',
+				$completedscount,
 				'<a href="global_report_eee_action2.php?id='.$row2->courseid.'" target="_BLANK">Rapport</a>',
 				'<a href="global_report_eee_count_action.php?id='.$row2->courseid.'">Télécharger</a>'
 				);

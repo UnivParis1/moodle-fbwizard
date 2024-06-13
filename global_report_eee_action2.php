@@ -17,8 +17,8 @@ function download_send_headers($filename) {
     header("Expires: Tue, 03 Jul 2001 06:00:00 GMT");
     header("Cache-Control: max-age=0, no-cache, must-revalidate, proxy-revalidate");
     header("Last-Modified: {$now} GMT");
-    header('Content-Encoding: UTF-8');
-    header('Content-type: text/csv; charset=UTF-8');
+    header('Content-Encoding: utf-8');
+    header('Content-type: text/csv; charset=utf-8');
     // force download  
     header("Content-Type: application/force-download");
     header("Content-Type: application/octet-stream");
@@ -34,14 +34,15 @@ function array2csv(array &$array) {
    }
    ob_start();
    $df = fopen("php://output", 'w');
-   fputcsv($df, array_keys(reset($array)));
+   fputcsv($df, array_keys(reset($array)),';', ' ');
    foreach ($array as $row) {
-      fputcsv($df, $row);
+      fputcsv($df,array_map('utf8_decode',array_values($row)),';', ' ');
    }
    fclose($df);
    return ob_get_clean();
 }
 function Nettoyer_chaine($chaine) {
+	$chaine = preg_replace('/[\n,\r]+/', ' ',$chaine);
 	$chaine = str_replace('#039;', "'", $chaine);
 	$chaine = str_replace(';', ',', $chaine);
 	$chaine = html_entity_decode($chaine, ENT_QUOTES);
@@ -61,14 +62,14 @@ if (is_siteadmin()) {
 	$items = array();
 	if (!empty($_GET['id'])) {
 		$cptl=0;
-		$cptc=6;
+		$cptc=7;
 		$courseid=$_GET['id'];
 		
 		$sql = " select * from {fbwizard} where courseid=?";
 		$metas = $DB->get_record_sql($sql,array($courseid));
-                $cat = getComposante( $metas->category);
-                $cat_idnumber_array = explode('/',$cat['idnumber']);
-                $ufr = $cat_idnumber_array[count($cat_idnumber_array)-1];
+		$cat = getComposante( $metas->category);
+		$cat_idnumber_array = explode('/',$cat['idnumber']);
+		$ufr = $cat_idnumber_array[count($cat_idnumber_array)-1];
 		$lib_course = $metas->lib_etp;
 		$cod_etp =  $metas->cod_etp;
 		$cod_vrs_vet = $metas->cod_vrs_vet;
@@ -83,16 +84,24 @@ if (is_siteadmin()) {
         $array_csv[$cptl][5]='COD_TPD_ETB';         
         $array_csv[$cptl][6]='niveau';         
 		
-
-		$select = "select distinct fi.label, fi.name from mdl_feedback f inner join mdl_feedback_item fi on (f.id=fi.feedback) where f.course=? and fi.name!='' and fi.name!='label' order by fi.position";
+		$tabCorrespondance= array();
+		$select = 
+			"SELECT distinct fi.label, fi.name 
+			from mdl_feedback f 
+			inner join mdl_feedback_item fi on (f.id=fi.feedback) 
+			where f.course=? and fi.name!='' 
+			and fi.name!='label' 
+			order by fi.position";
 		$obj_items = $DB->get_records_sql($select,array($courseid));
 		foreach ($obj_items as $i=>$row) {
 			$items[$cptc]['label'] = $row->label;
 			$items[$cptc]['name'] = $row->name;
+			$array_csv[$cptl][$cptc]='('.$row->label.')';
+			if (strpos($row->label,"com") === false && strpos($row->label,"UFR") === false)
+				$array_csv[$cptl][$cptc].='-'.$row->name;
+			$tabCorrespondance[$row->label]=$cptc;
 			$cptc++;
-			$array_csv[$cptl][$cptc]='('.$row->label.') ';
-		} 
-		
+		}
 		
 		$sql_users = "	SELECT distinct fbc.userid
 							FROM mdl_feedback_value fbv, mdl_feedback_completed fbc, mdl_feedback f, mdl_feedback_item fi
@@ -102,11 +111,6 @@ if (is_siteadmin()) {
 							 	AND fi.feedback = f.id";
 		$users = $DB->get_records_sql($sql_users);	
 
-
-
-
-
-	
 		foreach( $users as $u=>$user){
 			$cptl++;
 			$userid =$user->userid;
@@ -120,19 +124,23 @@ if (is_siteadmin()) {
 
 			for($p=7;$p<count($items)+7;$p++ ){ 
 				$array_csv[$cptl][$p] = '-';
-				$sql_answers = "	SELECT fi.id, fi.name, fi.label, fi.presentation, fi.typ, fbv .  *
-						FROM mdl_feedback_value fbv, mdl_feedback_completed fbc, mdl_feedback f, mdl_feedback_item fi
-						WHERE f.course=$courseid
-					 	AND fbv.completed = fbc.id
-					 	AND fbv.item=fi.id
-					 	AND fi.feedback = f.id
-					 	AND fbc.userid = $userid
-						AND fi.label like '".$items[$p-1]['label']."'
-						and fi.name!='label'
-						ORDER BY fbc.userid, fi.position;";
-				$answers = $DB->get_records_sql($sql_answers);
-				if (!empty($answers)) {
-					foreach($answers as $a=>$answer) {
+			}
+			$sql_answers = "	SELECT fi.id, fi.name, fi.label, fi.presentation, fi.typ, fbv.*
+					FROM mdl_feedback_value fbv, 
+						mdl_feedback_completed fbc, 
+						mdl_feedback f, 
+						mdl_feedback_item fi
+					WHERE f.course=$courseid
+					AND fbv.completed = fbc.id
+					AND fbv.item=fi.id
+					AND fi.feedback = f.id
+					AND fbc.userid = $userid
+					and fi.name!='label'
+					ORDER BY fbc.userid, fi.position;";
+			$answers = $DB->get_records_sql($sql_answers);
+			if (!empty($answers)) {
+				foreach($answers as $a=>$answer) {
+					if ($answer->value !=""  && array_key_exists($answer->label,$tabCorrespondance)){
 						if ($answer->typ== 'multichoice') {
 							$presentation = str_replace("r>>>>>", "", $answer->presentation);
 							$presentation = str_replace("<<<<<1", "", $presentation);
@@ -145,15 +153,15 @@ if (is_siteadmin()) {
 								$reponse.= $key > 0 ? " / " : "";
 								$reponse .= rtrim($pres_array[intval($value) - 1]);
 							}
-								
-							$array_csv[$cptl][$p]= rtrim(html_entity_decode(strip_tags( $reponse)));
+							$array_csv[$cptl][$tabCorrespondance[$answer->label]]= rtrim(html_entity_decode(strip_tags( $reponse)));
 			
 						} else {
-							$array_csv[$cptl][$p]=html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
+							$array_csv[$cptl][$tabCorrespondance[$answer->label]]= html_entity_decode(strip_tags( Nettoyer_chaine($answer->value)));
 						}
-					}					
-				}	
-			}
+					}
+				}					
+			}	
+			
 		}
 		$sql = " select * from {fbwizard} where courseid=?";
 		$metas = $DB->get_record_sql($sql,array($courseid));
